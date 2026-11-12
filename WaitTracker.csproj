@@ -1,0 +1,32 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>WaitTracker</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pulled from the user's Slay the Spire 2 install (data_sts2_windows_x86_64/). -->
+    <Reference Include="sts2">
+      <HintPath>lib/sts2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- The game itself ships 0Harmony.dll for mod use -->
+    <Reference Include="0Harmony">
+      <HintPath>lib/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ROUND 8: our own clock icon (the game ships none). Must land next
+         to WaitTracker.dll in the build output so Patches.cs can find it
+         via the mod's own install directory at runtime. -->
+    <None Include="assets/clock.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
