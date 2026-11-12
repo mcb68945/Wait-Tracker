@@ -58,11 +58,11 @@ internal static class NonCombatTracking
 // Treasure chests / relic picking
 // ---------------------------------------------------------------------
 [HarmonyPatch(typeof(TreasureRoomRelicSynchronizer), MethodType.Constructor,
-    new[] { typeof(IPlayerCollection), typeof(ulong), typeof(ActionQueueSynchronizer), typeof(RelicGrabBag), typeof(Rng) })]
+    new[] { typeof(IRunState), typeof(ulong), typeof(ActionQueueSynchronizer), typeof(RelicGrabBag), typeof(Rng) })]
 public static class TreasureRoomRelicSynchronizer_Ctor_Patch
 {
     [HarmonyPostfix]
-    public static void Postfix(TreasureRoomRelicSynchronizer __instance, IPlayerCollection __0)
+    public static void Postfix(TreasureRoomRelicSynchronizer __instance, IRunState __0)
     {
         try
         {
@@ -75,7 +75,7 @@ public static class TreasureRoomRelicSynchronizer_Ctor_Patch
                 WaitCategories.TreasureRelics);
 
             sync.VotesChanged += Recompute;
-            sync.RelicsAwarded += _ => WaitState.OnNotReadyPlayersChanged(Array.Empty<Player>(), WaitCategories.TreasureRelics);
+            sync.RelicsAwarded += (_, __) => WaitState.OnNotReadyPlayersChanged(Array.Empty<Player>(), WaitCategories.TreasureRelics);
         }
         catch (Exception e)
         {
@@ -126,11 +126,11 @@ public static class EventSynchronizer_Ctor_Patch
 // Map / node selection
 // ---------------------------------------------------------------------
 [HarmonyPatch(typeof(MapSelectionSynchronizer), MethodType.Constructor,
-    new[] { typeof(INetGameService), typeof(ActionQueueSynchronizer), typeof(RunState) })]
+    new[] { typeof(INetGameService), typeof(ActionQueueSynchronizer), typeof(IRunState) })]
 public static class MapSelectionSynchronizer_Ctor_Patch
 {
     [HarmonyPostfix]
-    public static void Postfix(MapSelectionSynchronizer __instance, RunState __2)
+    public static void Postfix(MapSelectionSynchronizer __instance, IRunState __2)
     {
         try
         {
@@ -143,7 +143,7 @@ public static class MapSelectionSynchronizer_Ctor_Patch
                 WaitCategories.MapSelection);
 
             sync.PlayerVoteChanged += (_, __, ___) => Recompute();
-            sync.PlayerVoteCancelled += _ => Recompute();
+            sync.PlayerVoteCancelled += (_, __) => Recompute();
             sync.PlayerVotesCleared += Recompute;
         }
         catch (Exception e)
