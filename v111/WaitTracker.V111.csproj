@@ -1,0 +1,24 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+
+  <!-- Game v0.111 (live branch from Nov 2026). Loaded by WaitTracker.dll (Loader.cs), never by the game directly. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AssemblyName>WaitTracker.V111</AssemblyName>
+    <RootNamespace>WaitTracker</RootNamespace>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../src/*.cs" />
+    <Compile Include="../src/v111/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy sts2.dll and 0Harmony.dll from that game version into lib/v111/. -->
+    <Reference Include="sts2"><HintPath>../lib/v111/sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>../lib/v111/0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+</Project>

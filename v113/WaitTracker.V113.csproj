@@ -1,0 +1,24 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+
+  <!-- Game v0.113+ (synchronizers take IRunState). Loaded by WaitTracker.dll (Loader.cs), never by the game directly. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AssemblyName>WaitTracker.V113</AssemblyName>
+    <RootNamespace>WaitTracker</RootNamespace>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../src/*.cs" />
+    <Compile Include="../src/v113/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy sts2.dll and 0Harmony.dll from that game version into lib/v113/. -->
+    <Reference Include="sts2"><HintPath>../lib/v113/sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>../lib/v113/0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+</Project>

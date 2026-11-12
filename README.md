@@ -17,20 +17,28 @@ No. Wait Tracker doesn't change gameplay, so the game lets you join lobbies wher
 
 ## Installation
 
-Put these three files in `Slay the Spire 2/mods/WaitTracker/` (create the folder if needed):
+Put these files in `Slay the Spire 2/mods/WaitTracker/` (create the folder if needed):
 
 - `WaitTracker.dll`
+- `WaitTracker.V111.dll`
+- `WaitTracker.V113.dll`
 - `WaitTracker.json`
 - `clock.png`
 
-All three are required. Without the `.json`, the game won't find the mod at all.
+All are required. Without the `.json`, the game won't find the mod at all.
 
 To turn it off without deleting files, untick it in the game's Mods screen.
+
+## Game versions
+
+Works on both game v0.111 and v0.113+ (the live and beta branches as of November 2026). `WaitTracker.dll` is a small loader that checks which version is running and loads the matching build.
 
 ## Building from source
 
 1. Install the .NET 9 SDK.
-2. Copy `sts2.dll` and `0Harmony.dll` from your game install (`data_sts2_windows_x86_64/`) into a `lib/` folder here. They aren't included in this repo because they belong to the game.
-3. Run `dotnet build`. The DLL and `clock.png` land in `bin/`.
+2. Copy `sts2.dll` and `0Harmony.dll` from each game version's `data_sts2_windows_x86_64/` into `lib/v111/` and `lib/v113/`. They aren't in this repo because they belong to the game.
+3. Run `./build.sh`. The DLLs land in `out/`; copy `clock.png` from `assets/` alongside them.
+
+Source layout: `Loader.cs` (the loader), `src/` (shared code), `src/v111/` and `src/v113/` (the parts that differ by game version).
 
 Development history and implementation notes are in [DEVLOG.md](DEVLOG.md).

@@ -47,7 +47,7 @@ namespace WaitTracker;
 /// other mods down), just applied at a finer grain, per patch target rather
 /// than per mod.
 /// </summary>
-[ModInitializer("ModLoaded")]
+// Entry point is called by the WaitTracker.dll loader (see Loader.cs), not by the game directly.
 public static class WaitTrackerMod
 {
     public const string ModId = "WaitTracker";
