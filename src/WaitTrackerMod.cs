@@ -130,6 +130,7 @@ public static class WaitTrackerMod
             }
 
             var cm = CombatManager.Instance;
+            WaitState.NoteParty(_combatState.Players.Count);
             var notReady = _combatState.Players.Where(p => !cm.IsPlayerReadyToEndTurn(p)).ToList();
             WaitState.OnNotReadyPlayersChanged(notReady, WaitCategories.Combat);
         }

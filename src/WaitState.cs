@@ -44,8 +44,14 @@ public static class WaitState
     private static string _currentCategory = WaitCategories.Combat;
     private static DateTime _segmentStartUtc;
 
+    /// <summary>Largest party seen this run (from combat). 1 means a solo run: nothing to show.</summary>
+    public static int PartySize { get; private set; }
+
+    public static void NoteParty(int count) { if (count > PartySize) PartySize = count; }
+
     public static void Initialize()
     {
+        PartySize = 0;
         Totals.Clear();
         _soleActiveNetId = null;
     }

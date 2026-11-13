@@ -135,6 +135,8 @@ public static class GameOverScreen_AnimateRunSummary_Patch
             var originalTop = block?.GetGlobalRect().Position.Y ?? 0f;
 
             var totals = new List<(string DisplayName, double Seconds, IReadOnlyDictionary<string, double> ByCategory)>(WaitState.GetTotalsSorted());
+            // Solo runs: there's no one to make wait, so show nothing (as promised in the README).
+            if (WaitState.PartySize == 1) return;   // solo run; the finally block below still resets the totals
             var rows = 0;
             var isTopOffender = true;
 
