@@ -3,7 +3,7 @@
   "name": "Wait Tracker",
   "author": "mcb68945",
   "description": "Tracks how long each player made others wait during a multiplayer run, and shows a leaderboard on the end-of-run screen.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "has_pck": false,
   "has_dll": true,
   "dependencies": [],
