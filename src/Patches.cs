@@ -129,6 +129,11 @@ public static class GameOverScreen_AnimateRunSummary_Patch
 
             var icon = ResolveClockIcon();
 
+            // The stats block grows upward from its anchor, so extra rows pushed it
+            // into the death quote. Remember where its top was and keep it there.
+            var block = container as Control;
+            var originalTop = block?.GetGlobalRect().Position.Y ?? 0f;
+
             var totals = new List<(string DisplayName, double Seconds, IReadOnlyDictionary<string, double> ByCategory)>(WaitState.GetTotalsSorted());
             var rows = 0;
             var isTopOffender = true;
@@ -158,6 +163,12 @@ public static class GameOverScreen_AnimateRunSummary_Patch
 
                 _ = AnimateInSafely(line);
                 rows++;
+            }
+
+            if (block != null && rows > 0)
+            {
+                block.Resized += () => Callable.From(() => KeepTop(block, originalTop)).CallDeferred();
+                Callable.From(() => KeepTop(block, originalTop)).CallDeferred();
             }
 
             Log.Info($"[{WaitTrackerMod.ModId}] Added {rows} wait-time row(s) to the end-of-run screen.");
@@ -286,6 +297,23 @@ public static class GameOverScreen_AnimateRunSummary_Patch
     /// mouse is over the row. Godot's built-in TooltipText, used before, never appears in this game.
     /// The row root takes the mouse; its children ignore it so moving across the row doesn't flicker the popup.
     /// </summary>
+    /// Shift the stats block down so its top edge stays where the game put it.
+    /// Moves the nearest ancestor that is not inside a layout container, since
+    /// containers overwrite their children's positions.
+    private static void KeepTop(Control block, float originalTop)
+    {
+        try
+        {
+            if (!GodotObject.IsInstanceValid(block)) return;
+            var diff = originalTop - block.GetGlobalRect().Position.Y;
+            if (diff < 0.5f) return;
+            Control mover = block;
+            while (mover.GetParent() is Container parent) mover = parent;
+            mover.Position += new Vector2(0, diff);
+        }
+        catch (Exception e) { Log.Warn($"[{WaitTrackerMod.ModId}] Couldn't keep score block in place: {e.Message}", 0); }
+    }
+
     private static void AttachHoverTip(Control row, string title, string body)
     {
         if (string.IsNullOrEmpty(body)) return;
@@ -297,7 +325,7 @@ public static class GameOverScreen_AnimateRunSummary_Patch
         row.MouseFilter = Control.MouseFilterEnum.Stop;
         row.MouseEntered += () =>
         {
-            try { NHoverTipSet.CreateAndShow(row, tip); }
+            try { NHoverTipSet.CreateAndShow(row, tip, HoverTipAlignment.Right); }
             catch (Exception e) { Log.Warn($"[{WaitTrackerMod.ModId}] Hover tip failed: {e.Message}", 0); }
         };
         row.MouseExited += () =>
