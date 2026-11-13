@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
@@ -83,17 +85,9 @@ namespace WaitTracker;
 ///
 /// WaitState now tracks seconds per (player, category) instead of just a
 /// grand total per player (see WaitCategories/WaitState). To surface that
-/// on the row, we use Godot's native tooltip: any Control has a
-/// `TooltipText` string property, and the engine shows it automatically on
-/// hover after a short delay -- no custom popup/widget needed. The only
-/// wrinkle is that tooltips in Godot belong to whichever specific Control
-/// the cursor is actually over, they don't bubble up from a child to its
-/// parent -- so setting TooltipText only on the NScoreLine root would miss
-/// hovers that land on its inner label/icon controls (very likely, since
-/// "hover over the wait time" mostly means hovering the score label
-/// itself). Same fix shape as HighlightGold below: walk the whole node
-/// tree and set TooltipText on every Control in it, root included, so
-/// wherever the cursor actually lands already has the right text.
+/// on the row, hovering it opens the game's own hover popup (NHoverTipSet, as
+/// used for cards and relics) with the per-category breakdown. Godot's
+/// built-in TooltipText was tried first and never displays in this game.
 /// </summary>
 [HarmonyPatch(typeof(NGameOverScreen), "AnimateRunSummary")]
 public static class GameOverScreen_AnimateRunSummary_Patch
@@ -154,7 +148,7 @@ public static class GameOverScreen_AnimateRunSummary_Patch
                 container.AddChildSafely(line);
                 scoreLines?.Add(line);
 
-                SetTooltipRecursive(line, BuildTooltip(byCategory));
+                AttachHoverTip(line, $"{displayName}: waits by category", BuildTooltip(byCategory));
 
                 if (isTopOffender)
                 {
@@ -288,25 +282,52 @@ public static class GameOverScreen_AnimateRunSummary_Patch
     }
 
     /// <summary>
-    /// Sets TooltipText on every Control in the row, root included. Godot
-    /// tooltips belong to whichever specific Control is under the cursor --
-    /// they don't bubble up from a child to its parent -- and NScoreLine is
-    /// a packed scene with no named fields, so there's no reliable way to
-    /// know in advance which inner label/icon control the cursor is most
-    /// likely to land on. Setting it everywhere sidesteps that: no matter
-    /// which control catches the hover, it already has the same text.
+    /// Shows the breakdown in the game's own hover popup (NHoverTipSet, the one cards and relics use) when the
+    /// mouse is over the row. Godot's built-in TooltipText, used before, never appears in this game.
+    /// The row root takes the mouse; its children ignore it so moving across the row doesn't flicker the popup.
     /// </summary>
-    private static void SetTooltipRecursive(Node node, string tooltip)
+    private static void AttachHoverTip(Control row, string title, string body)
     {
-        if (node is Control control)
-        {
-            control.MouseFilter = Control.MouseFilterEnum.Stop;
-            control.TooltipText = tooltip;
-        }
+        if (string.IsNullOrEmpty(body)) return;
+        IHoverTip tip;
+        try { tip = MakeTip(title, body); }
+        catch (Exception e) { Log.Warn($"[{WaitTrackerMod.ModId}] Couldn't build hover tip: {e.Message}", 0); return; }
 
+        SetMouseFilterRecursive(row, Control.MouseFilterEnum.Ignore);
+        row.MouseFilter = Control.MouseFilterEnum.Stop;
+        row.MouseEntered += () =>
+        {
+            try { NHoverTipSet.CreateAndShow(row, tip); }
+            catch (Exception e) { Log.Warn($"[{WaitTrackerMod.ModId}] Hover tip failed: {e.Message}", 0); }
+        };
+        row.MouseExited += () =>
+        {
+            try { NHoverTipSet.Remove(row); } catch { /* popup already gone */ }
+        };
+    }
+
+    /// <summary>
+    /// HoverTip only has constructors that take localization keys, so build one with plain text by setting its
+    /// backing fields on a boxed copy (works on both game versions; v0.113 made Id get-only).
+    /// </summary>
+    private static IHoverTip MakeTip(string title, string body)
+    {
+        object box = default(HoverTip);
+        void Set(string name, object value) =>
+            (typeof(HoverTip).GetField($"<{name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?? throw new MissingFieldException(nameof(HoverTip), name)).SetValue(box, value);
+        Set("Title", title);
+        Set("Description", body);
+        Set("Id", "WaitTracker.breakdown." + title);
+        return (IHoverTip)box;
+    }
+
+    private static void SetMouseFilterRecursive(Node node, Control.MouseFilterEnum filter)
+    {
         foreach (var child in node.GetChildren())
         {
-            SetTooltipRecursive(child, tooltip);
+            if (child is Control c) c.MouseFilter = filter;
+            SetMouseFilterRecursive(child, filter);
         }
     }
 
